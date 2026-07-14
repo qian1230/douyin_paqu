@@ -1,0 +1,28 @@
+from ..base import FFmpegCommandBuilder
+
+
+class MP3CommandBuilder(FFmpegCommandBuilder):
+    def build_command(self) -> list[str]:
+        command = self._get_basic_ffmpeg_command()
+
+        if self.segment_record:
+            additional_commands = [
+                "-c:a", "libmp3lame",
+                "-b:a", "320k",
+                "-map", "0:a",
+                "-f", "segment",
+                "-segment_time", str(self.segment_time),
+                "-reset_timestamps", "1",
+                self.full_path,
+            ]
+        else:
+            additional_commands = [
+                "-map", "0:a",
+                "-c:a", "libmp3lame",
+                "-b:a", "320k",
+                "-f", "mp3",
+                self.full_path,
+            ]
+
+        command.extend(additional_commands)
+        return command

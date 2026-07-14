@@ -1,0 +1,23 @@
+# Python缓存文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# 虚拟环境
+venv/
+.venv
+env/
+
+# 数据集、视频素材【严禁上传MP4、大量弹幕文件】
+zhibo-video/
+tmp_audio_cache/
+
+# 系统文件
+Thumbs.db
+.DS_Store
+
+# PyCharm配置
+.idea/
+*.iml

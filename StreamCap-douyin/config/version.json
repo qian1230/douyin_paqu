@@ -1,0 +1,52 @@
+{
+  "introduction": {
+    "en": "A free application dedicated to recording videos from online live streaming platforms. By integrating FFmpeg, it efficiently and reliably records live streams from over 40 major platforms including Douyin, TikTok, Kuaishou, Huya, Douyu, Bilibili, Rednote, Baidu, Weibo, Kuwo, Migu, Twitch, YouTube, PandaTV, SoopLive, FlexTV(TTing), PopKontv, Twitcasting, WinkTV, 17Live, Acfun, CHZZK, and Shopee.",
+    "zh_CN": "一款专注于录制在线直播平台视频的免费应用。通过集成FFmpeg，高效、稳定地录制抖音、TikTok、快手、虎牙、斗鱼、B站、小红书、百度、微博、酷狗、咪咕、Twitch、YouTube、PandaTV、SoopLive、FlexTV(TTing)、PopKontv、Twitcasting、WinkTV、17Live、Acfun、CHZZK 和 Shopee 等40+主流平台的直播流。"
+  },
+  "open_source_license": "Apache License 2.0",
+  "version_updates": [
+    {
+      "version": "1.0.2",
+      "kernel_version": "4.0.8",
+      "updates": {
+        "en": [
+          "Enrich functions and enhance stability"
+        ],
+        "zh_CN": [
+          "丰富功能，增强稳定性"
+        ]
+      },
+      "release_date": "2025-08-15",
+      "announcement": {
+        "en": [
+          {
+            "title": "StreamCap v1.0.2 is officially released",
+            "content": "New multi-platform support, web adaptation for mobile, bug fixes, and stability improvements"
+          },
+          {
+            "title": "Usage tips",
+            "content": "Press Alt + H on Windows or Option + H on Mac to quickly access the shortcut help document, improve your work efficiency."
+          },
+          {
+            "title": "Coming soon",
+            "content": "More platforms are being supported..."
+          }
+        ],
+        "zh_CN": [
+          {
+            "title": "StreamCap v1.0.2 正式发布",
+            "content": "新增平台支持，进行移动端web适配，修复已知问题，提升稳定性"
+          },
+          {
+            "title": "使用技巧",
+            "content": "在Windows上按 Alt + H 或在Mac上按 Option + H，以快速访问快捷键帮助文档，提升您的工作效率。"
+          },
+          {
+            "title": "即将推出",
+            "content": "更多平台支持中..."
+          }
+        ]
+      }
+    }
+  ]
+}

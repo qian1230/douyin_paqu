@@ -1,0 +1,82 @@
+version: '3.8'
+
+# 分布式部署配置
+# 使用方法：
+# 1. 创建 .env 文件，设置各节点的 Cookie
+# 2. 修改 DATABASE_URL 为你的 PostgreSQL 数据库地址
+# 3. 运行: docker-compose -f docker-compose.distributed.yml up -d
+
+services:
+  streamcap-node1:
+    image: ihmily/streamcap
+    container_name: streamcap-node1
+    environment:
+      - NODE_ID=node1
+      - NODE_NAME=节点1
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://streamcap_user:password@数据库服务器IP:5432/streamcap}
+      - DOUYIN_COOKIE=${DOUYIN_COOKIE_NODE1}
+      - MAX_RECORDING_COUNT=6
+      - MIN_RECORDING_COUNT=6
+      - MAX_MONITORING_ONLY=4
+      - PORT=6006
+      - TZ=Asia/Shanghai
+      - PLATFORM=web
+      - HOST=0.0.0.0
+    volumes:
+      - ./logs-node1:/app/logs
+      - ./config-node1:/app/config
+      - ./downloads-node1:/app/downloads
+      - ./.env:/app/.env
+    ports:
+      - "6006:6006"
+    restart: unless-stopped
+    networks:
+      - streamcap-network
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -f http://localhost:6006/about || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  streamcap-node2:
+    image: ihmily/streamcap
+    container_name: streamcap-node2
+    environment:
+      - NODE_ID=node2
+      - NODE_NAME=节点2
+      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://streamcap_user:password@数据库服务器IP:5432/streamcap}
+      - DOUYIN_COOKIE=${DOUYIN_COOKIE_NODE2}
+      - MAX_RECORDING_COUNT=6
+      - MIN_RECORDING_COUNT=6
+      - MAX_MONITORING_ONLY=4
+      - PORT=6007
+      - TZ=Asia/Shanghai
+      - PLATFORM=web
+      - HOST=0.0.0.0
+    volumes:
+      - ./logs-node2:/app/logs
+      - ./config-node2:/app/config
+      - ./downloads-node2:/app/downloads
+      - ./.env:/app/.env
+    ports:
+      - "6007:6007"
+    restart: unless-stopped
+    networks:
+      - streamcap-network
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -f http://localhost:6007/about || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 可以继续添加更多节点...
+  # streamcap-node3:
+  #   ...
+
+networks:
+  streamcap-network:
+    driver: bridge
+
+
+
+

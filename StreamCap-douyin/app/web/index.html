@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抖音直播录制工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+        }
+        
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .column {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            height: 100%;
+        }
+
+        .video-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .video-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .info-card {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .info-card h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+
+        .info-card ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 26px;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: monospace;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-stop {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-stop:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .status-idle {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-running {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .logs {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            height: 380px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .log-line {
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .log-info {
+            color: #2196f3;
+        }
+
+        .log-error {
+            color: #f44336;
+        }
+
+        .log-success {
+            color: #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 抖音直播录制工具</h1>
+
+        <div class="layout">
+            <!-- 左侧：设置 -->
+            <div class="column">
+                <h2>⚙️ 录制设置</h2>
+
+                <div class="form-group">
+                    <label for="useCookie">使用自定义Cookie</label>
+                    <select id="useCookie" onchange="toggleCookieInput()">
+                        <option value="yes">是</option>
+                        <option value="no" selected>否（使用.env）</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="cookieGroup">
+                    <label for="cookie">抖音Cookie</label>
+                    <textarea id="cookie" placeholder="粘贴完整Cookie"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">直播分类</label>
+                    <select id="category">
+                        <option value="娱乐">娱乐</option>
+                        <option value="知识">知识</option>
+                        <option value="电商">电商</option>
+                        <option value="二次元">二次元</option>
+                        <option value="游戏">游戏</option>
+                        <option value="运动">运动</option>
+                        <option value="舞蹈">舞蹈</option>
+                        <option value="音乐">音乐</option>
+                    </select>
+                </div>
+<!-- 我加的 -->
+<div class="form-group">
+    <label for="maxRecording">最大同时录取数量</label>
+    <input type="number" id="maxRecording" value="6" min="1" max="20">
+</div>
+                <!-- ====================== -->
+                <!-- ✅ 分段录制时长（新加） -->
+                <!-- ====================== -->
+                <div class="form-group">
+                    <label for="duration">每段录制时长</label>
+                        <select id="duration">
+        <option value="30">30秒</option>
+        <option value="60" selected>1分钟</option>
+        <option value="600">10分钟</option>
+        <option value="1800">30分钟</option>
+        <option value="3600">1小时</option>
+        <option value="7200">2小时</option>
+    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="savePath">视频保存路径</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="savePath" value="downloads" placeholder="例如 D:/video/douyin" style="flex:1;">
+                        <button onclick="openFolderDialog()" style="padding:12px 20px;background:#667eea;color:white;border:none;border-radius:5px;cursor:pointer;">
+                            选择文件夹
+                        </button>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn-start" onclick="startRecording()">开始录制</button>
+                    <button class="btn-stop" onclick="stopRecording()">停止录制</button>
+                </div>
+            </div>
+
+            <!-- 中间：状态 -->
+            <div class="column">
+                <h2>📊 录制状态</h2>
+
+                <div class="status status-idle" id="status">等待中</div>
+
+                <div class="form-group">
+                    <label>已录制时长</label>
+                    <div id="recordedTime" style="font-size:18px; font-weight:bold;">00:00:00</div>
+                </div>
+
+                <div class="form-group">
+                    <label>正在录制的直播间</label>
+                    <div id="currentRooms" style="white-space: pre-line;">无</div>
+                </div>
+<div class="form-group">
+    <label>等候录取的直播间</label>
+    <div id="waitingQueue" class="queue-box">无</div>
+</div>
+                <div class="logs" id="logs"></div>
+            </div>
+
+            <!-- 右侧：视频 + 说明 -->
+            <div class="column">
+                <h2>📦 已保存视频</h2>
+
+                <div class="video-list" id="videoList">
+                    <div class="video-item">暂无视频</div>
+                </div>
+<div class="info-card">
+    <h3>📊 本类别累计录制总时长</h3>
+    <div id="totalDuration" style="font-size:18px; font-weight:bold; color:#d32f2f;">0 小时 0 分钟</div>
+</div>
+<div class="info-card">
+    <h3>📌 使用说明</h3>
+    <p>自动监控抖音直播，无人值守录制，支持分类筛选、人脸检测、自动保存。</p>
+    <br>
+    <h4>🍪 Cookie 获取步骤</h4>
+    <ul>
+        <li>打开抖音直播官网 https://live.douyin.com 并登录</li>
+        <li>F12 → Application → Cookies → live.douyin.com</li>
+        <li>复制完整 Cookie 并粘贴到左侧输入框</li>
+    </ul>
+    <br>
+    <p>⚠️ Fetch failed / 检测失败：Cookie 无效或已过期，请重新获取。</p>
+    <br>
+    <h4>⏱ 时长说明</h4>
+    <p style="font-size:14px; line-height:1.5;">
+    • 设置时长为预期值，受网络、直播流影响，实际会有小幅误差<br>
+    • 通常在设置时长 ±10% 以内均属正常
+    </p>
+</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+let ws;
+let recordingStartTime = null;
+let timer = null;
+let currentRoomList = [];
+
+function toggleCookieInput() {
+    const v = document.getElementById('useCookie').value;
+    document.getElementById('cookieGroup').style.display = v === 'yes' ? 'block' : 'none';
+}
+
+// 开始录制
+function startRecording() {
+    const useCookie = document.getElementById('useCookie').value;
+    const cookie = useCookie === 'yes' ? document.getElementById('cookie').value : '';
+    const category = document.getElementById('category').value;
+    const duration = document.getElementById('duration').value;
+    const savePath = document.getElementById('savePath').value;
+    const maxRecording = document.getElementById('maxRecording').value;
+
+    if (useCookie === 'yes' && !cookie.trim()) {
+        alert('请输入Cookie');
+        return;
+    }
+
+    fetch('/api/start-recording', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            cookie,
+            category,
+            duration: parseInt(duration),
+            save_path: savePath,
+            max_recording: parseInt(maxRecording)
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('status').className = 'status status-running';
+        document.getElementById('status').textContent = '正在录制';
+        connectWebSocket();
+    })
+    .catch(err => alert('启动失败'));
+}
+
+// 停止录制
+function stopRecording() {
+    fetch('/api/stop-recording', { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('status').className = 'status status-idle';
+        document.getElementById('status').textContent = '已停止';
+        stopTimer();
+        currentRoomList = [];
+        updateCurrentRooms();
+        if (ws) ws.close();
+    });
+}
+
+// 运行计时器
+function startTimer() {
+    if (timer) clearInterval(timer);
+    timer = setInterval(() => {
+        if (!recordingStartTime) return;
+        const diff = Math.floor((new Date() - recordingStartTime) / 1000);
+        const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+        const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+        const s = String(diff % 60).padStart(2, '0');
+        document.getElementById('recordedTime').innerText = `${h}:${m}:${s}`;
+    }, 1000);
+}
+
+// 停止计时器
+function stopTimer() {
+    clearInterval(timer);
+    timer = null;
+    recordingStartTime = null;
+    document.getElementById('recordedTime').innerText = "00:00:00";
+}
+
+// 添加已保存视频（刷新即清空）
+function addSavedVideo(text) {
+    const list = document.getElementById("videoList");
+    if (list.innerText.includes("暂无视频")) {
+        list.innerHTML = "";
+    }
+    const item = document.createElement("div");
+    item.className = "video-item";
+    item.innerText = text;
+    list.insertBefore(item, list.firstChild);
+}
+
+// WebSocket 日志监听
+function connectWebSocket() {
+    if (ws) ws.close();
+    ws = new WebSocket(`ws://${window.location.host}/ws/logs`);
+
+    ws.onmessage = e => {
+        const logs = document.getElementById('logs');
+        const txt = e.data.trim();
+        const line = document.createElement('div');
+        line.className = 'log-line';
+
+        if (txt.includes('OpenCV') || txt.includes('error:(')) {
+            line.classList.add('log-error');
+            line.textContent = txt;
+            logs.appendChild(line);
+            return;
+        }
+
+        if (txt.includes('ERROR')) line.classList.add('log-error');
+        else if (txt.includes('✅')) line.classList.add('log-success');
+        else if (txt.includes('INFO') || txt.includes('🎬') || txt.includes('录制')) line.classList.add('log-info');
+
+        line.textContent = txt;
+        logs.appendChild(line);
+        logs.scrollTop = logs.scrollHeight;
+
+        // 队列状态显示
+        const match = txt.match(/\[状态\] 录制中：(\d+) \| 队列等待：(\d+)/);
+        if (match) {
+            document.getElementById('waitingQueue').innerText = `🕒 等候队列：${match[2]} 个`;
+        }
+
+        // 开始录制 → 添加到列表
+        if (txt.includes('🎬 开始录制:')) {
+            const reg = /开始录制:\s*(.+)/;
+            const match = txt.match(reg);
+            if (match && match[1]) {
+                const name = match[1].trim();
+                if (!currentRoomList.includes(name)) {
+                    currentRoomList.push(name);
+                    updateCurrentRooms();
+                }
+            }
+            if (!recordingStartTime) {
+                recordingStartTime = new Date();
+                startTimer();
+            }
+        }
+
+        // 录制完成 → 刷新时长 + 从列表移除
+        if (txt.includes('✅ 录制完成:')) {
+    addSavedVideo(txt);
+    loadTotalDuration();
+
+    // 提取主播名（万能提取）
+    const parts = txt.split("✅ 录制完成:")[1]?.split(" - ");
+    if (parts && parts.length >= 2) {
+        const finishedName = parts[0].trim();
+
+        // 🔥 暴力模糊匹配：只要列表里的名字 包含 完成的名字 就删掉
+        for (let i = currentRoomList.length - 1; i >= 0; i--) {
+            if (currentRoomList[i].includes(finishedName) || finishedName.includes(currentRoomList[i])) {
+                currentRoomList.splice(i, 1);
+            }
+        }
+        updateCurrentRooms();
+    }
+}
+    };
+}
+
+// 加载累计总时长
+function loadTotalDuration() {
+    try {
+        const category = document.getElementById('category').value;
+        fetch(`/api/total-duration?category=${category}`)
+        .then(res => {
+            if (!res.ok) throw new Error("接口错误");
+            return res.json();
+        })
+        .then(data => {
+            document.getElementById('totalDuration').innerText = data.text || "0 小时 0 分钟 0 秒";
+        });
+    } catch (e) {}
+}
+
+// 自动刷新总时长
+loadTotalDuration();
+setInterval(loadTotalDuration, 30000);
+
+// 更新正在录制列表
+function updateCurrentRooms() {
+    const el = document.getElementById('currentRooms');
+    if (currentRoomList.length === 0) {
+        el.innerText = '无';
+    } else {
+        el.innerText = currentRoomList.join('\n');
+    }
+}
+
+// 选择文件夹
+function openFolderDialog() {
+    fetch('/api/select-folder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.path) {
+            document.getElementById('savePath').value = data.path;
+        }
+    })
+    .catch(() => alert('请手动输入路径'));
+}
+
+// 页面初始化
+document.addEventListener('DOMContentLoaded', () => {
+    loadTotalDuration();
+    document.getElementById('category').addEventListener('change', loadTotalDuration);
+});
+
+// 读取运行状态
+fetch('/api/status')
+.then(res => res.json())
+.then(data => {
+    if (data.status === 'running') {
+        document.getElementById('status').className = 'status status-running';
+        document.getElementById('status').textContent = '正在录制';
+        connectWebSocket();
+    }
+});
+
+toggleCookieInput();
+</script>
+</body>
+</html>
